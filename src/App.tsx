@@ -10,6 +10,9 @@ import ListingsPage from './pages/ListingsPage'
 import CombinedListPage from './pages/CombinedListPage'
 import AddressesPage from './pages/AddressesPage'
 import SettingsPage from './pages/SettingsPage'
+import SupportPage from './pages/SupportPage'
+import ModerationPage from './pages/ModerationPage'
+import ActivityPage from './pages/ActivityPage'
 
 function Protected({ children }: { children: ReactNode }) {
   const { isAuthenticated, checking } = useAuth()
@@ -43,6 +46,9 @@ function AppRoutes() {
           <Route index element={<DashboardPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="listings" element={<ListingsPage />} />
+          <Route path="support" element={<SupportPage />} />
+          <Route path="moderation" element={<ModerationPage />} />
+          <Route path="activity" element={<ActivityPage />} />
           <Route
             path="communities"
             element={<CombinedListPage title="Communities" kind="communities" />}

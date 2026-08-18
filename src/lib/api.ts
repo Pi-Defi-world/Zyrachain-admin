@@ -12,7 +12,7 @@ export interface AdminUser {
   permissions?: string[]
 }
 
-const baseURL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000').replace(/\/+$/, '')
+const baseURL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4111').replace(/\/+$/, '')
 const timeoutMs = Number(import.meta.env.VITE_API_TIMEOUT || 30000)
 
 function getToken(): string | null {
@@ -198,12 +198,14 @@ export async function getUsers(params: {
   limit?: number
   search?: string
   status?: string
+  role?: string
 } = {}): Promise<UsersResponse> {
   const q = new URLSearchParams()
   if (params.page) q.set('page', String(params.page))
   if (params.limit) q.set('limit', String(params.limit))
   if (params.search) q.set('search', params.search)
   if (params.status) q.set('status', params.status)
+  if (params.role) q.set('role', params.role)
   const qs = q.toString()
   return request<UsersResponse>(`/api/admin/users${qs ? `?${qs}` : ''}`)
 }
@@ -320,6 +322,245 @@ export async function runPctScan(): Promise<{
   error?: string
 }> {
   return request(`/api/admin/pct-monitor/run-scan`, { method: 'POST' })
+}
+
+// ---------------------------------------------------------------------------
+// Contact inquiries
+// ---------------------------------------------------------------------------
+
+export interface ContactInquiryRow {
+  _id: string
+  name?: string
+  email?: string
+  subject?: string
+  message?: string
+  status?: string
+  priority?: string
+  adminNotes?: string
+  ipAddress?: string
+  userAgent?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface ContactInquiriesResponse {
+  success: boolean
+  data: {
+    inquiries: ContactInquiryRow[]
+    pagination: { page: number; limit: number; total: number; pages: number }
+    statusCounts: { _id: string; count: number }[]
+    priorityCounts: { _id: string; count: number }[]
+  }
+}
+
+export async function getContactInquiries(params: {
+  page?: number
+  limit?: number
+  status?: string
+  priority?: string
+} = {}): Promise<ContactInquiriesResponse> {
+  const q = new URLSearchParams()
+  if (params.page) q.set('page', String(params.page))
+  if (params.limit) q.set('limit', String(params.limit))
+  if (params.status) q.set('status', params.status)
+  if (params.priority) q.set('priority', params.priority)
+  const qs = q.toString()
+  return request(`/api/contact${qs ? `?${qs}` : ''}`)
+}
+
+export async function updateContactInquiry(
+  id: string,
+  patch: { status?: string; priority?: string; notes?: string }
+): Promise<{ success: boolean; message?: string }> {
+  return request(`/api/contact/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Scam reports
+// ---------------------------------------------------------------------------
+
+export interface ScamReportRow {
+  _id: string
+  scamType?: string
+  walletAddress?: string
+  description?: string
+  evidence?: string
+  reporterContact?: string
+  status?: string
+  priority?: string
+  adminNotes?: string
+  ipAddress?: string
+  userAgent?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface ScamReportsResponse {
+  success: boolean
+  data: {
+    reports: ScamReportRow[]
+    pagination: { page: number; limit: number; total: number; pages: number }
+    statusCounts: { _id: string; count: number }[]
+    scamTypeCounts: { _id: string; count: number }[]
+  }
+}
+
+export async function getScamReports(params: {
+  page?: number
+  limit?: number
+  status?: string
+  priority?: string
+  scamType?: string
+} = {}): Promise<ScamReportsResponse> {
+  const q = new URLSearchParams()
+  if (params.page) q.set('page', String(params.page))
+  if (params.limit) q.set('limit', String(params.limit))
+  if (params.status) q.set('status', params.status)
+  if (params.priority) q.set('priority', params.priority)
+  if (params.scamType) q.set('scamType', params.scamType)
+  const qs = q.toString()
+  return request(`/api/report-scam${qs ? `?${qs}` : ''}`)
+}
+
+export async function updateScamReport(
+  id: string,
+  patch: { status?: string; priority?: string; notes?: string }
+): Promise<{ success: boolean; message?: string }> {
+  return request(`/api/report-scam/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Admin activity log
+// ---------------------------------------------------------------------------
+
+export interface ActivityRow {
+  _id: string
+  adminUser: { username?: string; email?: string; role?: string }
+  action: string
+  actionType: string
+  targetType: string
+  targetId?: string
+  targetName?: string
+  details?: unknown
+  ipAddress?: string
+  timestamp?: string
+  success?: boolean
+}
+
+export interface ActivityResponse {
+  success: boolean
+  data: ActivityRow[]
+  pagination: { page: number; limit: number; total: number; pages: number }
+}
+
+export async function getAdminActivity(params: {
+  page?: number
+  limit?: number
+  actionType?: string
+} = {}): Promise<ActivityResponse> {
+  const q = new URLSearchParams()
+  if (params.page) q.set('page', String(params.page))
+  if (params.limit) q.set('limit', String(params.limit))
+  if (params.actionType) q.set('actionType', params.actionType)
+  const qs = q.toString()
+  return request(`/api/admin/activity${qs ? `?${qs}` : ''}`)
+}
+
+// ---------------------------------------------------------------------------
+// Social moderation
+// ---------------------------------------------------------------------------
+
+export interface ModerationRow {
+  _id: string
+  author_uid?: string
+  content?: string
+  images?: string[]
+  tags?: string[]
+  status?: string
+  like_count?: number
+  comment_count?: number
+  impression_count?: number
+  createdAt?: string
+  author?: { user_uid?: string; piUsername?: string; avatar?: string }
+}
+
+export interface ModerationQueueResponse {
+  success: boolean
+  data: ModerationRow[]
+  pagination: { page: number; limit: number; total: number; pages: number }
+}
+
+export async function getModerationQueue(params: {
+  page?: number
+  limit?: number
+} = {}): Promise<ModerationQueueResponse> {
+  const q = new URLSearchParams()
+  if (params.page) q.set('page', String(params.page))
+  if (params.limit) q.set('limit', String(params.limit))
+  const qs = q.toString()
+  return request(`/api/admin/moderation/queue${qs ? `?${qs}` : ''}`)
+}
+
+export async function moderatePost(
+  postId: string,
+  action: 'approve' | 'remove' | 'flag'
+): Promise<{ success: boolean; post?: ModerationRow }> {
+  return request(`/api/admin/moderation/posts/${postId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ action }),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// User management
+// ---------------------------------------------------------------------------
+
+export async function updateUser(
+  userId: string,
+  patch: { role?: string; bio?: string }
+): Promise<{ success: boolean; user?: AdminUserRow }> {
+  return request(`/api/admin/users/${userId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Platform settings (economy)
+// ---------------------------------------------------------------------------
+
+export interface StreakMilestone {
+  days: number
+  zp: number
+}
+
+export interface PlatformSettings {
+  zp_per_pi: number
+  platform_fee_rate: number
+  referral_reward_zp: number
+  streak_milestones: StreakMilestone[]
+}
+
+export async function getPlatformSettings(): Promise<{
+  success: boolean
+  settings: PlatformSettings
+}> {
+  return request('/api/admin/settings')
+}
+
+export async function updatePlatformSettings(
+  patch: Partial<PlatformSettings>
+): Promise<{ success: boolean; updated: string[]; settings: PlatformSettings }> {
+  return request('/api/admin/settings', {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  })
 }
 
 export { baseURL }
