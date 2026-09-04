@@ -12,7 +12,7 @@ export interface AdminUser {
   permissions?: string[]
 }
 
-const baseURL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4111').replace(/\/+$/, '')
+const baseURL = (import.meta.env.VITE_API_BASE_URL || 'https://api.zyrachain.org').replace(/\/+$/, '')
 const timeoutMs = Number(import.meta.env.VITE_API_TIMEOUT || 30000)
 
 function getToken(): string | null {
